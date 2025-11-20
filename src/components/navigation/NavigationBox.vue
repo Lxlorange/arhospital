@@ -74,8 +74,8 @@
 
           window.executeRealNavigation(p1, p2);
           
-          this.$store.commit('switchNavBox');
-          this.$store.commit('switchNavButton');
+          // this.$store.commit('switchNavBox');
+          // this.$store.commit('switchNavButton');
         } else {
           alert("地图尚未加载完成");
         }

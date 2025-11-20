@@ -41,67 +41,54 @@
     },
     methods: {
       mapCreate() {
-        // --- [v3.0 初始化写法] ---
         const mapOptions = {
           container: document.getElementById('mapContainer'),
           appName: 'HospitalNav',
           key: 'e9ba251d9b1d897f99133b970b50650b',
           
-          // [关键] 指向你的数据文件夹
           mapServerURL: './data/map/1991048910850551809', 
           
-          // 主题设置 (尝试使用在线主题，或者下载主题包放在本地)
           mapThemeURL: 'https://lib.fengmap.com/theme/2001',
           defaultThemeName: '2001',
           
           modelSelectedEffect: false
         };
 
-        // 初始化地图
         window.map = new fengmap.FMMap(mapOptions);
 
-        // [关键] v3.0 打开地图的 API 变了
         window.map.openMap({
-          id: '1991048910850551809', // 你的地图ID
+          id: '1991048910850551809',
           error: (e) => {
             console.error(e);
             alert('地图打开失败，请检查控制台报错');
           }
         });
 
-        // 监听加载完成
         window.map.on('loadComplete', () => {
           console.log('✅ 地图加载完成 (v3.0)');
           
-          // 初始化导航
           this.initNavigation();
           
-          // 初始化楼层控件
           this.createControls();
           
-          // 挂载一个全局测试函数方便你调试
           window.autoNavigate = this.testRoute; 
         });
         
-        // 点击地图打印坐标，方便你找起终点
         window.map.on('click', (e) => {
            console.log("点击坐标:", e.coords);
         });
       },
 
-      // [v3.0] 导航初始化
       initNavigation() {
-        // 使用 FMNaviAnalyser (在 fengmap.analyser.min.js 中)
         if (!fengmap.FMNaviAnalyser) return;
 
         window.naviAnalyser = new fengmap.FMNaviAnalyser({
           map: window.map
         });
         
-        console.log("✅ 导航分析器已就绪");
+        console.log("导航分析器已就绪");
       },
       
-      // [v3.0] 创建控件
       createControls() {
         // 楼层控件
         new fengmap.FMToolbar({
@@ -111,7 +98,6 @@
         }).addTo(window.map);
       },
 
-      // [新] 路径规划函数 (替代旧的 navi.drawNaviLine)
       calculateRoute(p1, p2) {
         if (!window.naviAnalyser) return;
 
@@ -128,10 +114,9 @@
           console.log("🚀 路径计算成功", result);
           
           // 提取坐标点给 AR 模块
-          // v3.0 的点集在 result.subs[0].points
+          // 点集在 result.subs[0].points
           const routePoints = result.subs[0].points;
           
-          // 存入 Vuex (这会触发 AR 划线)
           this.$store.commit("getCoordinates", routePoints);
           
           alert("导航开始！请点击界面上的'模拟导航'按钮");
@@ -140,9 +125,8 @@
         }
       },
 
-      // [调试用] 在控制台输入 window.autoNavigate() 即可触发
       testRoute() {
-         // 随便找两个点 (假设在1层)
+         // 随便找两个点
          const c = window.map.center;
          const gid = window.map.focusGroupID;
          this.calculateRoute(

@@ -11,7 +11,6 @@
 </template>
 
 <script>
-  import axios from "axios"
   import VConsole from "vconsole"
   import openCamera from "./openCamera"
 
@@ -19,8 +18,8 @@
     name: "IndoorMap",
     data() {
       return {
-        isStarPoint: true,
-        isArShow: false,
+        map: null,
+        naviAnalyser: null, // v3.0 路径分析器
         currentPosition: null
       }
     },
@@ -28,270 +27,138 @@
       new VConsole()
     },
     mounted() {
-      this.mapCreate()
-
-      //发送post请求
-      // let data = {
-      //   acceleration: [],
-      //   deviceId: "ruoshui",
-      //   did: [{id: "000027D55A6E", rssi: "-65"}],
-      //   mac: [],
-      //   map: [{key: "0000", value: "FDA50693A4E24FB1AFCFC6EB07647825"}, {
-      //     key: "0001",
-      //     value: "1918FC80B1113441A9ACB1001C2FE510"
-      //   }],
-      //   sensorInfo: {isSensorValid: "0", step: "0", isMoving: "0", compassValue: 0},
-      //   time: "2020-06-30 09:48:50",
-      //   timestamp: new Date().getTime()
-      // }
-      // axios.post("https://navmobiletest.joysuch.com:12345/Locate", data).then(res => {
-      //   console.log(res)
-      // })
-      // const socket1 = new WebSocket("wss://navmobiletest.joysuch.com:12345/websocket/" + "ruoshui" + '___' + new Date().getTime())
-      // socket1.addEventListener('open', function (event) {
-      //   console.log("连接建立")
-      // })
-      // socket1.addEventListener('message', (event) => {
-      //   console.log(event)
-      // })
-      // axios.post("https://navmobiletest.joysuch.com:12345/syxzzxEngin/Locate", data).then(res => {
-      //   console.log(res)
-      // })
-
-      //创建websocket
-      let userID = window.location.search.substr(1)
-      const socket = new WebSocket("wss://navmobiletest.joysuch.com:12345/syxzzxEngin/websocket/" + userID + '___' + new Date().getTime())
-      socket.addEventListener('open', function (event) {
-        console.log("连接建立")
-      })
-      socket.addEventListener('message', (event) => {
-        console.log('Message from server ', event.data)
-        let data = JSON.parse(event.data)
-        let x = 13439300 + parseInt(data.xMillimeter) / 1000
-        let y = 3667200 + parseInt(data.yMillimeter) / 1000
-        let floor = parseInt(data.floorNo.substr(5))
-        this.currentPosition = {x: x, y: y, floor: floor}
-      })
-
-      setInterval(() => {
-        if (this.currentPosition !== null) {
-          locationMarker.setPosition(this.currentPosition.x, this.currentPosition.y, this.currentPosition.floor + 1)
-        }
-      }, 2000)
+      // 确保 fengmap 对象存在再初始化
+      if (window.fengmap) {
+        this.mapCreate()
+      } else {
+        alert("SDK加载失败，请检查 public/lib 下的文件是否完整")
+      }
+    },
+    watch: {
+      '$store.state.arComponentShow'(isShown) {
+        if (isShown) openCamera();
+      }
     },
     methods: {
       mapCreate() {
-        //创建地图对象
-        window.map = new fengmap.FMMap({
+        // --- [v3.0 初始化写法] ---
+        const mapOptions = {
           container: document.getElementById('mapContainer'),
-          mapServerURL: './data/map',
-          defaultViewMode: fengmap.FMViewMode.MODE_2D
-        })
-        map.openMapById('123456')
-        // map.openMapById('200036')
+          appName: 'HospitalNav',
+          key: 'e9ba251d9b1d897f99133b970b50650b',
+          
+          // [关键] 指向你的数据文件夹
+          mapServerURL: './data/map/1991048910850551809', 
+          
+          // 主题设置 (尝试使用在线主题，或者下载主题包放在本地)
+          mapThemeURL: 'https://lib.fengmap.com/theme/2001',
+          defaultThemeName: '2001',
+          
+          modelSelectedEffect: false
+        };
 
-        //监听地图加载完成
-        map.on('loadComplete', () => {
-          //创建导航对象
-          this.creatNavigation()
-          //创建楼层控件
-          this.creatFloorControl()
-          //创建指北针控件
-          this.creatCompassControl()
-          //创建定位点
-          this.creatLocationMaker()
-        })
+        // 初始化地图
+        window.map = new fengmap.FMMap(mapOptions);
 
-        //路径规划
-        map.on('mapClickNode', event => {
-          console.log(navi)
-          if (this.$store.state.isNavBoxShow === true) {
-            console.log(this.$store.state.startPointSelect)
-            if (this.$store.state.startPointSelect === true) {
-              navi.setStartPoint({
-                x: event.x,
-                y: event.y,
-                groupID: map.getFocusGroupID(),
-                url: './img/start.png',
-                size: 42
-              })
-              if (event.name !== "") {
-                document.getElementById("startInput").value = event.name
-              } else if (event.properties.get("ENAME") !== null) {
-                console.log(event.properties.get("ENAME"))
-                document.getElementById("startInput").value = event.properties.get("ENAME")
-              } else {
-                document.getElementById("startInput").value = "当前起点位置"
-              }
-              this.$store.commit("startPointSelectFalse")
-            } else if (this.$store.state.endPointSelect === true) {
-              navi.setEndPoint({
-                x: event.x,
-                y: event.y,
-                groupID: map.getFocusGroupID(),
-                url: './img/end.png',
-                size: 42,
-              })
-              if (event.name !== "") {
-                document.getElementById("endInput").value = event.name
-              } else if (event.properties.get("ENAME") !== null) {
-                console.log(event.properties.get("ENAME"))
-                document.getElementById("endInput").value = event.properties.get("ENAME")
-              } else {
-                document.getElementById("endInput").value = "当前终点位置"
-              }
-              this.$store.commit("endPointSelectFalse")
-            }
-
-            // if (this.isStarPoint === true) {
-            //   navi.clearAll()
-            //   navi.setStartPoint({
-            //     x: event.x,
-            //     y: event.y,
-            //     groupID: map.getFocusGroupID(),
-            //     url: './img/start.png',
-            //     size: 42
-            //   })
-            //   this.isStarPoint = false
-            // } else {
-            //   navi.setEndPoint({
-            //     x: event.x,
-            //     y: event.y,
-            //     groupID: map.getFocusGroupID(),
-            //     url: './img/end.png',
-            //     size: 42,
-            //   })
-            //   this.isStarPoint = true
-            //   navi.drawNaviLine().then(result => {
-            //     this.$refs.Ar.style.zIndex = 10
-            //     window.ar = new arNavigation(result.segments[0].points.coordinates)
-            //     ar.arNavigation()
-            //     this.$store.commit("getCoordinates", ar.arCoordinates())
-            //   })
-            // }
-
+        // [关键] v3.0 打开地图的 API 变了
+        window.map.openMap({
+          id: '1991048910850551809', // 你的地图ID
+          error: (e) => {
+            console.error(e);
+            alert('地图打开失败，请检查控制台报错');
           }
-        })
+        });
+
+        // 监听加载完成
+        window.map.on('loadComplete', () => {
+          console.log('✅ 地图加载完成 (v3.0)');
+          
+          // 初始化导航
+          this.initNavigation();
+          
+          // 初始化楼层控件
+          this.createControls();
+          
+          // 挂载一个全局测试函数方便你调试
+          window.autoNavigate = this.testRoute; 
+        });
+        
+        // 点击地图打印坐标，方便你找起终点
+        window.map.on('click', (e) => {
+           console.log("点击坐标:", e.coords);
+        });
       },
-      //楼层控件
-      creatFloorControl() {
-        let floorSwitchOpt = new fengmap.controlOptions({
-          //默认在右上角
-          position: fengmap.controlPositon.RIGHT_TOP,
-          //默认显示楼层的个数
-          showBtnCount: 3,
-          //初始是否是多层显示，默认单层显示
-          allLayer: false,
-          //是否显示多层/单层切换按钮
-          needAllLayerBtn: true,
-          //控件位置x,y的偏移量
-          offset: {
-            x: 10,
-            y: 280
-          }
-        })
-        let groupControl = new fengmap.scrollGroupsControl(map, floorSwitchOpt)
+
+      // [v3.0] 导航初始化
+      initNavigation() {
+        // 使用 FMNaviAnalyser (在 fengmap.analyser.min.js 中)
+        if (!fengmap.FMNaviAnalyser) return;
+
+        window.naviAnalyser = new fengmap.FMNaviAnalyser({
+          map: window.map
+        });
+        
+        console.log("✅ 导航分析器已就绪");
       },
-      //指北针控件
-      creatCompassControl() {
-        let compassOpt = new fengmap.controlOptions({
-          position: fengmap.controlPositon.LEFT_TOP,
-          width: 40,
-          height: 40,
-          offset: {
-            x: 12,
-            y: 120,
-          },
-        })
-        let compassControl = new fengmap.compassControl(map, compassOpt)
+      
+      // [v3.0] 创建控件
+      createControls() {
+        // 楼层控件
+        new fengmap.FMToolbar({
+           mode: '2d', 
+           position: fengmap.FMControlPosition.RIGHT_TOP,
+           offset: { x: 10, y: 100 }
+        }).addTo(window.map);
       },
-      //导航对象
-      creatNavigation() {
-        window.navi = new fengmap.FMNavigation({
-          map: map,
-          speed: 1.2,
-          imageMarkerHeight: 0.5,
-          // locationMarkerUrl: 'image/locate.png',
-          // locationMarkerSize: 32,
-          followPosition: true,
-          followAngle: true,
-          changeTiltAngle: true,
-          tiltAngle: 30,
-          scaleLevel: 1,
-          lineMarkerHeight: 0.3,
-          lineStyle: {
-            lineType: fengmap.FMLineType.FMARROW,
-            lineWidth: 8,
-            godColor: '#1c31ff',
-            height: 0.5,
-            alpha: 0.7,
-            noAnimate: false,
-          },
-          // serverUrl: 'http://172.16.10.38:48080',
-          // serverUrl: 'https://navmobiletest.joysuch.com:48079',
-          // serverUrl: 'http://127.0.0.1:48080',
-          serverUrl:"http://121.196.176.68:48081",
-          routeSearchDistance: 5.0,
-          realityMaxDistance_REAL: 3.0,
-          realityMinDistance_REAL: 1.0,
-          trackBufferExtend: 20
-        })
+
+      // [新] 路径规划函数 (替代旧的 navi.drawNaviLine)
+      calculateRoute(p1, p2) {
+        if (!window.naviAnalyser) return;
+
+        const request = {
+          start: { x: p1.x, y: p1.y, groupID: p1.groupID, url: './img/start.png', size: 32 },
+          end:   { x: p2.x, y: p2.y, groupID: p2.groupID, url: './img/end.png', size: 32 },
+          mode: fengmap.FMNaviMode.MODULE_SHORTEST
+        };
+
+        // 计算路径
+        const result = window.naviAnalyser.analyse(request);
+
+        if (result && result.subs && result.subs.length > 0) {
+          console.log("🚀 路径计算成功", result);
+          
+          // 提取坐标点给 AR 模块
+          // v3.0 的点集在 result.subs[0].points
+          const routePoints = result.subs[0].points;
+          
+          // 存入 Vuex (这会触发 AR 划线)
+          this.$store.commit("getCoordinates", routePoints);
+          
+          alert("导航开始！请点击界面上的'模拟导航'按钮");
+        } else {
+          alert("路径计算失败，请确认路网是否连通");
+        }
       },
-      //创建定位点标志
-      creatLocationMaker() {
-        window.locationMarker = new fengmap.FMLocationMarker({
-          ID: 1,
-          groupID: 1,
-          x: 0,
-          y: 0,
-          z: 0.0,
-          height: 0.5,
-          name: 'currentPosition',
-          direction: 0,
-          show: true,
-          url: './img/导航.png',
-          size: 26,
-        })
-        map.addLocationMarker(locationMarker)
+
+      // [调试用] 在控制台输入 window.autoNavigate() 即可触发
+      testRoute() {
+         // 随便找两个点 (假设在1层)
+         const c = window.map.center;
+         const gid = window.map.focusGroupID;
+         this.calculateRoute(
+           { x: c.x - 5, y: c.y, groupID: gid }, 
+           { x: c.x + 5, y: c.y, groupID: gid }
+         );
       }
     }
   }
 </script>
 
 <style scoped>
-  #mapContainer {
-    width: 100vw;
-    height: 100vh;
-  }
-
-  #webARModule {
-    position: fixed;
-    top: 0;
-    left: 0;
-  }
-
-  #ARModuleCameraVideo {
-    position: absolute;
-    width: 100vw;
-    height: 50vh;
-    object-fit: cover;
-  }
-
-  #webGL3d {
-    position: absolute;
-    width: 100vw;
-    height: 50vh;
-  }
-
-  #landmark {
-    position: fixed;
-    width: 100vw;
-    height: 50vh;
-  }
-
-  #compassLine {
-    position: fixed;
-    width: 100vw;
-    overflow: hidden;
-  }
+  #mapContainer { width: 100vw; height: 100vh; background-color: #eee; }
+  #webARModule { position: fixed; top: 0; left: 0; z-index: 999; }
+  #ARModuleCameraVideo { position: absolute; width: 100vw; height: 100vh; object-fit: cover; }
+  #webGL3d { position: absolute; width: 100vw; height: 100vh; pointer-events: none; }
+  #landmark { position: fixed; width: 100vw; height: 100vh; pointer-events: none; }
+  #compassLine { position: fixed; width: 100vw; bottom: 50px; overflow: hidden; }
 </style>

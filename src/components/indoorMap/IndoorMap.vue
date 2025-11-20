@@ -65,7 +65,7 @@
         });
 
         window.map.on('loadComplete', () => {
-          console.log('✅ 地图加载完成 (v3.0)');
+          console.log('地图加载完成 (v3.0)');
           
           this.initNavigation();
           
@@ -111,7 +111,7 @@
         const result = window.naviAnalyser.analyse(request);
 
         if (result && result.subs && result.subs.length > 0) {
-          console.log("🚀 路径计算成功", result);
+          console.log("路径计算成功", result);
           
           // 提取坐标点给 AR 模块
           // 点集在 result.subs[0].points

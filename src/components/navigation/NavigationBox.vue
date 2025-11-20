@@ -1,15 +1,17 @@
 <template>
   <div class="navigation" v-if="$store.state.isNavBoxShow">
     <div class="top">
-      <div class="flex">
+      <div class="flex" :class="{ active: focusType === 'start' }" @click="setFocus('start')">
         <IconItem class="green">起</IconItem>
-        <input type="text" v-model="startName" placeholder="请输入起点">
+        <input type="text" v-model="startName" @focus="setFocus('start')" placeholder="请输入或点击地图选点">
       </div>
-      <div class="flex">
+      
+      <div class="flex" :class="{ active: focusType === 'end' }" @click="setFocus('end')">
         <IconItem class="red">终</IconItem>
-        <input type="text" v-model="endName" placeholder="请输入或点击地图">
+        <input type="text" v-model="endName" @focus="setFocus('end')" placeholder="请输入或点击地图选点">
       </div>
     </div>
+    
     <div class="bottom">
       <button @click="confirmClick">开始导航</button>
       <button @click="cancelClick">取消</button>
@@ -22,50 +24,68 @@
 
   export default {
     name: "NavigationBox",
-    components: {
-      IconItem
-    },
+    components: { IconItem },
     data() {
       return {
-        startName: "挂号大厅", // 默认起点
-        endName: "",           // 终点
-        startCoord: null,      // 如果是点击获取的，存坐标对象
-        endCoord: null         // 如果是点击获取的，存坐标对象
+        startName: "挂号大厅", 
+        endName: "",           
+        startCoord: {
+           x: 12952283.282653809,
+           y: 4832009.279470444,
+           groupID: 1,
+           name: "挂号大厅"
+        }, 
+        endCoord: null,
+        focusType: 'end'
       }
     },
     mounted() {
-      // [关键] 注册全局回调，让 IndoorMap 点击事件能更新这里
-      window.updateEndInput = (name, coord) => {
-        this.endName = name;
-        this.endCoord = coord; // 保存精确坐标
+      window.updateNavSelection = (name, coord) => {
+        if (this.focusType === 'start') {
+          this.startName = name;
+          this.startCoord = coord;
+          console.log("已设置起点:", name);
+          this.focusType = 'end'; 
+        } else {
+          this.endName = name;
+          this.endCoord = coord;
+          console.log("已设置终点:", name);
+        }
       };
     },
     beforeDestroy() {
-      window.updateEndInput = null;
+      window.updateNavSelection = null;
     },
     methods: {
+      setFocus(type) {
+        this.focusType = type;
+        console.log("当前选点模式:", type === 'start' ? "选起点" : "选终点");
+      },
+
       confirmClick() {
         if (typeof window.executeRealNavigation === 'function') {
-          console.log("开始规划路径:", this.startName, "->", this.endName);
-          
           const p1 = this.startCoord ? this.startCoord : this.startName;
           const p2 = this.endCoord ? this.endCoord : this.endName;
 
-          // 调用 IndoorMap.vue 里的逻辑
+          if(!p1 || !p2) {
+             alert("请输入起点和终点");
+             return;
+          }
+
           window.executeRealNavigation(p1, p2);
           
-          // UI 交互处理
           this.$store.commit('switchNavBox');
           this.$store.commit('switchNavButton');
         } else {
-          alert("地图尚未加载完成，请稍后再试");
+          alert("地图尚未加载完成");
         }
       },
-      
       cancelClick() {
         this.$store.commit('switchNavBox');
         this.endName = "";
         this.endCoord = null;
+        this.startCoord = null;
+        // this.startName = ""; 
       }
     }
   }
@@ -74,29 +94,29 @@
 <style scoped>
   .navigation {
     position: fixed;
-    left: 0;
-    right: 0;
-    bottom: 0;
+    left: 0; right: 0; bottom: 0;
     background-color: #ffffff;
-    z-index: 999; /* 确保在最上层 */
+    z-index: 999;
     border-top-left-radius: 20px;
     border-top-right-radius: 20px;
     box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
   }
-
   .flex {
     display: flex;
     margin: 15px 30px;
     align-items: center;
+    padding: 5px;
+    border-radius: 10px;
+    transition: background-color 0.3s;
   }
 
-  .flex .green {
-    background-color: var(--color-green);
+  .flex.active {
+    background-color: #e6f0ff;
+    border: 1px solid #4187ff;
   }
 
-  .flex .red {
-    background-color: var(--color-red);
-  }
+  .flex .green { background-color: var(--color-green); }
+  .flex .red { background-color: var(--color-red); }
 
   .flex input {
     width: 80%;
@@ -108,32 +128,9 @@
     outline: none;
     background-color: #f5f5f5;
   }
-
-  .bottom {
-    display: flex;
-    justify-content: center;
-    padding-bottom: 20px;
-  }
-
-  .bottom button {
-    width: 130px;
-    height: 40px;
-    font-size: 18px;
-    color: #fff;
-    font-weight: 500;
-    border-radius: 20px;
-    border: none;
-    outline: none;
-    margin: 0 15px;
-  }
-
-  .bottom button:nth-child(1) {
-    background-color: #4187ff;
-    box-shadow: 0 4px 10px rgba(65, 135, 255, 0.3);
-  }
-
-  .bottom button:nth-child(2) {
-    background-color: #e0e0e0;
-    color: #4e4e4e;
-  }
+  
+  .bottom { display: flex; justify-content: center; padding-bottom: 20px; }
+  .bottom button { width: 130px; height: 40px; font-size: 18px; color: #fff; border-radius: 20px; border: none; margin: 0 15px; }
+  .bottom button:nth-child(1) { background-color: #4187ff; }
+  .bottom button:nth-child(2) { background-color: #e0e0e0; color: #4e4e4e; }
 </style>

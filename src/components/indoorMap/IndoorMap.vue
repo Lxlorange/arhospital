@@ -18,8 +18,8 @@
     data() {
       return {
         map: null,
-        naviAnalyser: null, // 导航分析器
-        searchAnalyser: null, // 搜索分析器 [新增]
+        naviAnalyser: null,
+        searchAnalyser: null,
         currentPosition: null
       }
     },
@@ -73,8 +73,8 @@
             };
             console.log("选中地点:", roomName);
             
-            if (window.updateEndInput && roomName) {
-              window.updateEndInput(roomName, clickCoord); 
+            if (window.updateNavSelection && roomName) {
+              window.updateNavSelection(roomName, clickCoord); 
             }
           }
         });
@@ -97,12 +97,11 @@
         
         this.naviPromise = new Promise((resolve) => {
           const _analyserInstance = new fengmap.FMNaviWalkAnalyser({
-            map: window.map
+            map: window.map,
+            // threshold: 100  
           }, () => {
             console.log("导航分析器初始化成功！");
-            
             window.naviAnalyser = _analyserInstance;
-            
             resolve(_analyserInstance);
           });
         });
@@ -181,7 +180,8 @@
             url: './img/end.png', 
             size: 32 
           },
-          mode: fengmap.FMNaviMode.MODULE_SHORTEST
+          mode: fengmap.FMNaviMode.MODULE_SHORTEST,
+          priority: fengmap.FMNaviPriority.PRIORITY_DEFAULT
         };
 
         console.log("发起路径规划请求:", request);

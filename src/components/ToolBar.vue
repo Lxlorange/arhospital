@@ -17,26 +17,31 @@
 <script>
   export default {
     name: "ToolBar",
-    data(){
+    data() {
       return {
-        isActive:false
+        isActive: false
       }
     },
-    methods:{
-      switchDisplay(){
+    methods: {
+      switchDisplay() {
         this.isActive = !this.isActive
-        if(this.isActive === true){
-          map.viewMode = fengmap.FMViewMode.MODE_3D
-        }else{
-          map.viewMode = fengmap.FMViewMode.MODE_2D
+
+        if (window.map && window.fengmap) {
+          const mode = this.isActive ? window.fengmap.FMViewMode.MODE_3D : window.fengmap.FMViewMode.MODE_2D;
+          
+          if (typeof window.map.setViewMode === 'function') {
+            window.map.setViewMode(mode);
+          } else {
+            window.map.viewMode = mode;
+          }
         }
       },
-      switchNav(){
-        navi.clearAll()
+      switchNav() {
         this.$store.commit('switchNav')
-        document.getElementById("webARModule").style.zIndex = "0"
+        const arMod = document.getElementById("webARModule");
+        if(arMod) arMod.style.zIndex = "0";
       },
-      switchAr(){
+      switchAr() {
         this.$store.commit("switchArComponent")
       }
     }

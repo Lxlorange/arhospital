@@ -6,26 +6,38 @@
 </template>
 
 <script>
-
   export default {
-    name: "Navitation",
+    name: "Navigation",
     methods: {
       simulate() {
-        navi.simulate()
-        let arCoordinates = this.$store.state.coordinates.concat()
-        let length = arCoordinates.length
-        for (let i = 0; i <= length; i++) {
-          (function (coordinates) {
+        let arCoordinates = this.$store.state.coordinates;
+        if (!arCoordinates || arCoordinates.length === 0) {
+          alert("没有路径数据！请先在控制台运行 window.autoNavigate() 生成路径。");
+          return;
+        }
+
+        console.log("开始模拟导航...");
+        
+        let coordsClone = arCoordinates.concat();
+        let length = coordsClone.length;
+
+        for (let i = 0; i < length; i++) {
+          (function (currentCoords) {
             setTimeout(function () {
-              window.ar.redrawAr(coordinates)
-              console.log(coordinates)
-            }, 1000 * i)
-          })(arCoordinates.concat())
-          arCoordinates.shift()
+              if (window.ar && window.ar.redrawAr) {
+                window.ar.redrawAr(currentCoords);
+                console.log("AR 模拟步进:", i);
+              }
+            }, 1000 * i);
+          })(coordsClone.concat());
+          
+          coordsClone.shift();
         }
       },
+      
       arSimulate() {
-        console.log(this.$store.state.coordinates)
+        console.log("当前导航路径:", this.$store.state.coordinates);
+        this.$store.commit("switchArComponent");
       }
     }
   }
@@ -37,12 +49,10 @@
     left: 0;
     right: 0;
     bottom: 0;
-  }
-
-  .navigation {
     text-align: center;
     margin: 10px;
     display: flex;
+    z-index: 999;
   }
 
   .navigation button {

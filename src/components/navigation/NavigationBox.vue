@@ -2,16 +2,16 @@
   <div class="navigation" v-if="$store.state.isNavBoxShow">
     <div class="top">
       <div class="flex">
-        <IconItem class="green" @click.native="startPointSelectTrue">起</IconItem>
-        <input type="text" id="startInput" value="我的位置">
+        <IconItem class="green">起</IconItem>
+        <input type="text" id="startInput" value="挂号大厅">
       </div>
       <div class="flex">
-        <IconItem class="red" @click.native="endPointSelectTrue">终</IconItem>
-        <input type="text" id="endInput">
+        <IconItem class="red">终</IconItem>
+        <input type="text" id="endInput" value="">
       </div>
     </div>
     <div class="bottom">
-      <button @click="confirmClick">确定</button>
+      <button @click="confirmClick">开始导航</button>
       <button @click="cancelClick">取消</button>
     </div>
   </div>
@@ -19,43 +19,27 @@
 
 <script>
   import IconItem from "./IconItem"
-  import arNavigation from "../indoorMap/arMap"
 
   export default {
-    name: "Navigation",
+    name: "NavigationBox",
     components: {
       IconItem
     },
     methods: {
       confirmClick() {
-        if (navi.startPosition.x === 0) {
-          console.log("请选择起点")
-          return
-        } else if (navi.endPosition.x === 0) {
-          console.log("请选择终点")
-          return
+        if (typeof window.autoNavigate === 'function') {
+          console.log("调用全局演示导航...");
+          window.autoNavigate(); 
+          
+          this.$store.commit('switchNavBox');
+          this.$store.commit('switchNavButton');
+        } else {
+          alert("地图尚未加载完成，请稍后再试");
         }
-        navi.drawNaviLine().then(result => {
-          console.log(result)
-          document.getElementById("webARModule").style.zIndex = "10"
-          window.ar = new arNavigation(result.segments[0].points.coordinates)
-          ar.arNavigation()
-          this.$store.commit("getCoordinates", ar.arCoordinates())
-        })
-        this.$store.commit('switchNavBox')
-        this.$store.commit('switchNavButton')
       },
+      
       cancelClick() {
-        navi.clearAll()
-        this.$store.commit('switchNavBox')
-      },
-      startPointSelectTrue() {
-        this.$store.commit('startPointSelectTrue')
-        this.$store.commit('endPointSelectFalse')
-      },
-      endPointSelectTrue() {
-        this.$store.commit('endPointSelectTrue')
-        this.$store.commit('startPointSelectFalse')
+        this.$store.commit('switchNavBox');
       }
     }
   }
@@ -68,11 +52,16 @@
     right: 0;
     bottom: 0;
     background-color: #ffffff;
+    z-index: 999; /* 确保在最上层 */
+    border-top-left-radius: 20px;
+    border-top-right-radius: 20px;
+    box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
   }
 
   .flex {
     display: flex;
-    margin: 5px 30px 5px 30px
+    margin: 15px 30px;
+    align-items: center;
   }
 
   .flex .green {
@@ -88,31 +77,33 @@
     margin-left: 20px;
     border-radius: 30px;
     border: 1px solid var(--color-border);
-    font-size: 18px;
-    padding-left: 20px;
+    font-size: 16px;
+    padding: 8px 20px;
     outline: none;
+    background-color: #f5f5f5;
   }
 
   .bottom {
     display: flex;
-    /*text-align: center;*/
-    padding-left: 55px;
+    justify-content: center;
+    padding-bottom: 20px;
   }
 
   .bottom button {
-    width: 110px;
-    height: 36px;
-    font-size: 20px;
+    width: 130px;
+    height: 40px;
+    font-size: 18px;
     color: #fff;
     font-weight: 500;
-    border-radius: 15px;
-    border: 1px solid #fff;
+    border-radius: 20px;
+    border: none;
     outline: none;
-    margin: 5px 15px 5px 15px;
+    margin: 0 15px;
   }
 
   .bottom button:nth-child(1) {
     background-color: #4187ff;
+    box-shadow: 0 4px 10px rgba(65, 135, 255, 0.3);
   }
 
   .bottom button:nth-child(2) {

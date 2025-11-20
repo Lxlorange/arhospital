@@ -165,7 +165,7 @@
 
 <style scoped>
   #mapContainer { width: 100vw; height: 100vh; background-color: #eee; }
-  #webARModule { position: fixed; top: 0; left: 0; z-index: 999; }
+  #webARModule { position: fixed; top: 0; left: 0; z-index: 999; pointer-events: none; }
   #ARModuleCameraVideo { position: absolute; width: 100vw; height: 100vh; object-fit: cover; }
   #webGL3d { position: absolute; width: 100vw; height: 100vh; pointer-events: none; }
   #landmark { position: fixed; width: 100vw; height: 100vh; pointer-events: none; }

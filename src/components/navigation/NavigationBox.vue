@@ -3,11 +3,11 @@
     <div class="top">
       <div class="flex">
         <IconItem class="green">起</IconItem>
-        <input type="text" id="startInput" value="挂号大厅">
+        <input type="text" v-model="startName" placeholder="请输入起点">
       </div>
       <div class="flex">
         <IconItem class="red">终</IconItem>
-        <input type="text" id="endInput" value="">
+        <input type="text" v-model="endName" placeholder="请输入或点击地图">
       </div>
     </div>
     <div class="bottom">
@@ -25,12 +25,36 @@
     components: {
       IconItem
     },
+    data() {
+      return {
+        startName: "挂号大厅", // 默认起点
+        endName: "",           // 终点
+        startCoord: null,      // 如果是点击获取的，存坐标对象
+        endCoord: null         // 如果是点击获取的，存坐标对象
+      }
+    },
+    mounted() {
+      // [关键] 注册全局回调，让 IndoorMap 点击事件能更新这里
+      window.updateEndInput = (name, coord) => {
+        this.endName = name;
+        this.endCoord = coord; // 保存精确坐标
+      };
+    },
+    beforeDestroy() {
+      window.updateEndInput = null;
+    },
     methods: {
       confirmClick() {
-        if (typeof window.autoNavigate === 'function') {
-          console.log("调用全局演示导航...");
-          window.autoNavigate(); 
+        if (typeof window.executeRealNavigation === 'function') {
+          console.log("开始规划路径:", this.startName, "->", this.endName);
           
+          const p1 = this.startCoord ? this.startCoord : this.startName;
+          const p2 = this.endCoord ? this.endCoord : this.endName;
+
+          // 调用 IndoorMap.vue 里的逻辑
+          window.executeRealNavigation(p1, p2);
+          
+          // UI 交互处理
           this.$store.commit('switchNavBox');
           this.$store.commit('switchNavButton');
         } else {
@@ -40,6 +64,8 @@
       
       cancelClick() {
         this.$store.commit('switchNavBox');
+        this.endName = "";
+        this.endCoord = null;
       }
     }
   }

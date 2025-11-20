@@ -65,7 +65,6 @@
           const target = event.targets && event.targets[0];
           if (target) {
             const roomName = target.name;
-            // 坐标数据
             const clickCoord = {
               x: event.coords.x,
               y: event.coords.y,
@@ -74,7 +73,6 @@
             };
             console.log("选中地点:", roomName);
             
-            // [关键] 如果UI层定义了回调，就调用它来填充输入框
             if (window.updateEndInput && roomName) {
               window.updateEndInput(roomName, clickCoord); 
             }
@@ -98,17 +96,13 @@
         console.log("开始初始化导航分析器...");
         
         this.naviPromise = new Promise((resolve) => {
-          // 【修改点 1】先定义一个变量接收 new 的结果
           const _analyserInstance = new fengmap.FMNaviWalkAnalyser({
             map: window.map
           }, () => {
-            // 回调函数执行时，说明初始化好了
             console.log("导航分析器初始化成功！");
             
-            // 【修改点 2】直接使用外部定义的 _analyserInstance 变量
             window.naviAnalyser = _analyserInstance;
             
-            // 【修改点 3】把这个确定的实例 resolve 出去
             resolve(_analyserInstance);
           });
         });
@@ -128,9 +122,7 @@
           return;
         }
 
-        // 1. 解析起点
         let p1 = typeof startVal === 'string' ? await this.searchLocation(startVal) : startVal;
-        // 2. 解析终点
         let p2 = typeof endVal === 'string' ? await this.searchLocation(endVal) : endVal;
 
         if (!p1 || !p2) {
@@ -150,22 +142,16 @@
         return new Promise((resolve, reject) => {
           if (!this.searchAnalyser) return resolve(null);
           
-          // 【修改点1】使用官方推荐的 Request 对象构造方式，避免属性拼写错误
           var request = new fengmap.FMSearchRequest();
           
-          // 【修改点2】在 v3.0 SDK 中，必须使用 fengmap.FMType.MODEL，而不是 FMSearchType
           request.type = fengmap.FMType.MODEL; 
           
           request.keyword = keyword;
 
           this.searchAnalyser.query(request, (result) => {
-            // 获取第一个匹配结果
             if (result && result.length > 0) {
               const target = result[0];
-              // 返回标准坐标对象
               resolve({
-                // 注意：不同版本返回的坐标属性可能不同，v3通常是 mapCoord 或直接在对象根目录下
-                // 建议先打印一下 target 看看结构
                 x: target.mapCoord ? target.mapCoord.x : target.x, 
                 y: target.mapCoord ? target.mapCoord.y : target.y,
                 groupID: target.groupID,
@@ -184,14 +170,14 @@
           start: { 
             x: p1.x, 
             y: p1.y, 
-            level: p1.groupID, // 确保这里有值，不是 undefined
+            level: p1.groupID,
             url: './img/start.png', 
             size: 32 
           },
           dest: { 
             x: p2.x, 
             y: p2.y, 
-            level: p2.groupID, // 确保这里有值，不是 undefined
+            level: p2.groupID,
             url: './img/end.png', 
             size: 32 
           },
@@ -200,10 +186,8 @@
 
         console.log("发起路径规划请求:", request);
 
-        // 【关键修改】添加第二个参数 (error) => { ... }
         window.naviAnalyser.route(
           request, 
-          // 1. 成功回调
           (result) => {
             console.log("开始画线", result);
             if (result && result.subs && result.subs.length > 0) {
@@ -214,10 +198,8 @@
                alert("路径计算结果为空");
             }
           },
-          // 2. 失败回调 (之前缺这个，所以没反应)
           (error) => {
             console.error("路径规划失败详情:", error);
-            // error 可能是对象也可能是字符串，打印出来看
             alert("路径规划失败，请看控制台红色报错");
           }
         );
@@ -228,16 +210,10 @@
 
         const segments = [];
         
-        // 遍历所有路段
         route.subs.forEach(leg => {
-          // 【修改点1】建议暂时去掉这个 if 判断，防止意外过滤掉有效路段
-          // 除非你非常确定只画同层路径，否则先注释掉它，看看能不能画出来
-          // if (leg.levels[0] === leg.levels[1]) { 
             
             let segment = new fengmap.FMSegment();
             
-            // 【修改点2 - 核心】手动给所有点增加 Z 轴高度
-            // 官方示例中明确指出需要设置 point.z，否则线会被地板遮挡
             const pointsWithHeight = leg.waypoint.points.map(p => {
               return {
                 x: p.x,
@@ -248,7 +224,6 @@
 
             segment.points = pointsWithHeight;
             
-            // 这里的 level 决定了线在切换楼层时是否显示
             segment.level = leg.levels[0]; 
             
             segments.push(segment);
@@ -268,7 +243,6 @@
           segments: segments,
           color: '#4187ff', 
           width: 6,
-          // height: 2 // 【修改点3】建议去掉这个属性，改用上面点的 z 值控制，这样更稳定
         });
         
         this.naviLine.addTo(window.map);

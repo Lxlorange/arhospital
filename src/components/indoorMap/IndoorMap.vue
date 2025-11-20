@@ -75,57 +75,22 @@
           window.autoNavigate = this.testRoute;
         });
 
-        this.map.on('click', (event) => {
-          // 1. 获取点击的房间模型
+        window.map.on('click', (event) => {
+          console.log("点击捕获对象:", event.targets);
           const target = event.targets && event.targets[0];
-          
-          if (!target) return;
-          
-          // 2. 获取房间名字 (如果没有名字，就显示 '未知区域')
-          const roomName = target.name || '未知位置';
-          const coord = {
-            x: event.coords.x,
-            y: event.coords.y,
-            groupID: event.level,
-            url: '', // 图标留空，后面赋值
-            size: 32
-          };
+          if (target) {
+            const roomName = target.name; 
+            const clickCoord = {
+              x: event.coords.x,
+              y: event.coords.y,
+              groupID: event.level
+            };
 
-          console.log("🖱️ 点击了:", roomName, coord);
+            console.log("选中房间:", roomName);
+            console.log("坐标:", clickCoord);
 
-          // 3. 判断当前是在选起点还是选终点 (依赖 Vuex 状态)
-          // 注意：这里假设 store 里有 isStartPointSelect 和 isEndPointSelect 状态
-          // 对应 NavigationBox 里的 startPointSelectTrue/endPointSelectTrue
-          
-          if (this.$store.state.isStartPointSelect) {
-            // --- 选起点 ---
-            console.log("📍 设定起点为:", roomName);
-            
-            // 更新输入框文字 (直接操作 DOM 最简单直接)
-            const input = document.getElementById('startInput');
-            if(input) input.value = roomName;
-            
-            // 保存坐标
-            this.clickStartPoint = { ...coord, url: './img/start.png' };
-            
-            // 提示用户
-            // alert(`起点已设为：${roomName}`);
-            
-          } else if (this.$store.state.isEndPointSelect) {
-            // --- 选终点 ---
-            console.log("📍 设定终点为:", roomName);
-            
-            // 更新输入框文字
-            const input = document.getElementById('endInput');
-            if(input) input.value = roomName;
-            
-            // 保存坐标
-            this.clickEndPoint = { ...coord, url: './img/end.png' };
-            
-            // 【自动化】如果起点也选好了，直接开始规划路径！
-            if (this.clickStartPoint) {
-              console.log("✨ 起终点已就绪，自动规划路径...");
-              this.calculateAndDraw(this.clickStartPoint, this.clickEndPoint);
+            if (roomName) {              
+              this.endPoint = { ...clickCoord, name: roomName };
             }
           }
         });

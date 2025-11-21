@@ -1,9 +1,9 @@
 <template>
   <div class="toolBar">
-    <div id="displayBar" class="icon" @click="switchDisplay">
+    <!-- <div id="displayBar" class="icon" @click="switchDisplay">
       <img src="~@/assets/img/2D.png" alt="" v-show="isActive">
       <img src="~@/assets/img/3D.png" alt="" v-show="!isActive">
-    </div>
+    </div> -->
     <div id="arBar" class="icon" @click="switchAr">
       <img src="~@/assets/img/AR.png" alt="">
     </div>
@@ -19,23 +19,23 @@
     name: "ToolBar",
     data() {
       return {
-        isActive: false
+        isActive: false 
       }
     },
     methods: {
       switchDisplay() {
-        this.isActive = !this.isActive
-
-        if (window.map && window.fengmap) {
-          const mode = this.isActive ? window.fengmap.FMViewMode.MODE_3D : window.fengmap.FMViewMode.MODE_2D;
-          
-          if (typeof window.map.setViewMode === 'function') {
-            window.map.setViewMode(mode);
-          } else {
-            window.map.viewMode = mode;
-          }
+        if (!window.map || !window.fengmap) {
+          console.warn("地图尚未初始化");
+          return;
         }
+
+        this.isActive = !this.isActive;
+        const mode = this.isActive ? fengmap.FMViewMode.MODE_3D : fengmap.FMViewMode.MODE_2D;
+
+        console.log("切换视图模式:", this.isActive ? "3D" : "2D");
+        window.map.viewMode = mode;
       },
+
       switchNav() {
         this.$store.commit('switchNav')
         const arMod = document.getElementById("webARModule");

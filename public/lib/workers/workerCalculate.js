@@ -1,0 +1,1 @@
+import{maxInnerRect as m}from"./chunk-LZ7YKIBG.js";import"./chunk-ZPMWR67W.js";import"./chunk-7IGK3GFL.js";import"./chunk-2DLEF24H.js";self.onmessage=function(r){var{parameters:r,id:n}=r.data,e=r["type"];let t=null;var s=[];"maxInnerRect"===e&&(t=m(r,s)),self.postMessage({id:n,result:t},s)};

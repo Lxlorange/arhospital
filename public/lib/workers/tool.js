@@ -1,0 +1,1 @@
+import{toVec2 as o}from"./chunk-2DLEF24H.js";export{o as toVec2};

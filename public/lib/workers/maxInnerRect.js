@@ -1,0 +1,1 @@
+import{maxInnerRect as n}from"./chunk-LZ7YKIBG.js";import"./chunk-ZPMWR67W.js";import"./chunk-7IGK3GFL.js";import"./chunk-2DLEF24H.js";export{n as maxInnerRect};

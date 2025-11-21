@@ -54,6 +54,7 @@
 
         window.map.on('loaded', () => {
           console.log('地图加载完成');
+          this.addFloorControl();
           this.initNavigation();
           this.initSearch();
 
@@ -82,9 +83,29 @@
 
       initSearch() {
         if (!fengmap.FMSearchAnalyser) return;
-        this.searchAnalyser = new fengmap.FMSearchAnalyser({
-          map: window.map
-        });
+          this.searchAnalyser = new fengmap.FMSearchAnalyser({
+            map: window.map
+          });
+        },
+
+      addFloorControl() {
+        if (fengmap.FMToolbar) {
+            var scrollFloorCtlOpt = {
+              position: fengmap.FMControlPosition.LEFT_TOP,
+              offset: { x: 15, y: 80 }, 
+              floorModeControl: true,
+              needAllLayerBtn: true,
+              viewModeControl: true, 
+              floorButtonCount: 5 
+          };
+          
+          var scrollFloorControl = new fengmap.FMToolbar(scrollFloorCtlOpt);
+          scrollFloorControl.addTo(window.map);
+          
+          console.log("楼层控件加载成功");
+        } else {
+          console.error("未找到 fengmap.FMToolbar，请检查 index.html 是否引入了 UI 插件");
+        }
       },
 
       initNavigation() {

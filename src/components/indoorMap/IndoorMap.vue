@@ -54,6 +54,16 @@
 
         window.map.on('loaded', () => {
           console.log('地图加载完成');
+          if (window.map.bound) {
+            window.map.setFitView(window.map.bound, {
+              animate: true,
+              duration: 0.1,
+              finish: () => {
+                console.log("视角自动适配完成");
+                // window.map.zoomIn(); 
+              }
+            });
+          }
           this.addFloorControl();
           this.initNavigation();
           this.initSearch();
@@ -101,7 +111,16 @@
           
           var scrollFloorControl = new fengmap.FMToolbar(scrollFloorCtlOpt);
           scrollFloorControl.addTo(window.map);
-          
+
+          var zoomBar = new fengmap.FMZoomBar({
+                position: fengmap.FMControlPosition.RIGHT_TOP,
+                offset: {
+                    x: -10,
+                    y: 20
+                },
+            });
+
+        zoomBar.addTo(window.map);
           console.log("楼层控件加载成功");
         } else {
           console.error("未找到 fengmap.FMToolbar，请检查 index.html 是否引入了 UI 插件");

@@ -44,10 +44,12 @@
           container: document.getElementById('mapContainer'),
           appName: 'HospitalNav',
           key: 'ddc2639ce5ff01d57e9d4a61f8ea67a5',
+          // mapURL: './data/1991048910850551809',
           mapID: '1991048910850551809',
           mapThemeURL: 'https://lib.fengmap.com/theme/2001',
           defaultThemeName: '2001',
-          modelSelectedEffect: false
+          modelSelectedEffect: false,
+          floorSpace: 5
         };
 
         window.map = new fengmap.FMMap(mapOptions);
@@ -64,6 +66,7 @@
               }
             });
           }
+          console.log(window.map.getFloorSpace())
           this.addFloorControl();
           this.initNavigation();
           this.initSearch();

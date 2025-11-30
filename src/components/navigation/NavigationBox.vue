@@ -52,6 +52,13 @@
           console.log("已设置终点:", name);
         }
       };
+      const params = new URLSearchParams(window.location.search);
+      const destination = params.get('dest');
+      
+      if (destination) {
+        this.endName = destination;
+        this.focusType = 'start';
+      }
     },
     beforeDestroy() {
       window.updateNavSelection = null;

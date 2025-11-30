@@ -49,7 +49,7 @@
           mapThemeURL: 'https://lib.fengmap.com/theme/2001',
           defaultThemeName: '2001',
           modelSelectedEffect: false,
-          floorSpace: 5
+          floorSpace: 8
         };
 
         window.map = new fengmap.FMMap(mapOptions);
@@ -72,6 +72,20 @@
           this.initSearch();
 
           window.executeRealNavigation = this.handleNavigationRequest; 
+          const params = new URLSearchParams(window.location.search);
+          const destination = params.get('dest');
+
+          if (destination) {
+            console.log("检测到URL导航请求，目的地:", destination);
+            
+            if (!this.$store.state.isNavBoxShow) {
+              this.$store.commit('switchNavBox'); 
+            }
+
+            setTimeout(() => {
+                this.handleNavigationRequest("挂号大厅", destination);
+            }, 1000);
+          }
         });
 
         window.map.on('click', (event) => {

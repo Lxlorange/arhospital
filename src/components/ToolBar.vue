@@ -33,7 +33,10 @@
         const mode = this.isActive ? fengmap.FMViewMode.MODE_3D : fengmap.FMViewMode.MODE_2D;
 
         console.log("切换视图模式:", this.isActive ? "3D" : "2D");
-        window.map.viewMode = mode;
+        window.map.setViewMode({
+            mode: mode,
+            animate: true
+        });
       },
 
       switchNav() {

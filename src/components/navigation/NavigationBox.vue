@@ -3,12 +3,24 @@
     <div class="top">
       <div class="flex" :class="{ active: focusType === 'start' }" @click="setFocus('start')">
         <IconItem class="green">起</IconItem>
-        <input type="text" v-model="startName" @focus="setFocus('start')" placeholder="请输入或点击地图选点">
+        <input 
+          type="text" 
+          v-model="startName" 
+          @focus="setFocus('start')" 
+          @input="startCoord = null" 
+          placeholder="请输入或点击地图选点"
+        >
       </div>
       
       <div class="flex" :class="{ active: focusType === 'end' }" @click="setFocus('end')">
         <IconItem class="red">终</IconItem>
-        <input type="text" v-model="endName" @focus="setFocus('end')" placeholder="请输入或点击地图选点">
+        <input 
+          type="text" 
+          v-model="endName" 
+          @focus="setFocus('end')" 
+          @input="endCoord = null" 
+          placeholder="请输入或点击地图选点"
+        >
       </div>
     </div>
     
@@ -30,8 +42,8 @@
         startName: "挂号大厅", 
         endName: "",           
         startCoord: {
-           x: 12952283.282653809,
-           y: 4832009.279470444,
+           x: 12952371.703681946, 
+           y: 4832045.853654381,
            groupID: 1,
            name: "挂号大厅"
         }, 

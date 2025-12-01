@@ -11,7 +11,7 @@
 10、fengmap.plugin.location.min.js	——位置服务模块，依赖于核心模块使用，目前包含轨迹回放功能，依赖于核心模块使用
 11、fengmap.plugin.debug.min.js	——性能监控模块，依赖于核心模块使用，用于查看当前渲染对象的顶点数、面数以及性能统计信息。方便了解和优化渲染性能
 12、fengmap.plugin.fusion.min.js	——数据融合插件包，依赖于云平台数据融合模块的融合结果和sdk核心模块使用，用于以web方式快速获取融合数据，并以marker形式添加到地图应用里
-13、fengmap.plugin.loader.min.js	——FBX动态模型加载器插件包，依赖于sdk核心模块使用，用于添加FBX格式的动态模型（FMDynamicModel）
+13、fengmap.plugin.loader.min.js	——JS外部模型/FBX动态模型加载器模块，依赖于sdk核心模块使用，用于加载*.js外部模型（FMExternalModel）或添加FBX格式的动态模型（FMDynamicModel）
 
 其他配置文件及说明
 14、toolBarStyle.css		——楼层控件样式文件，支持自定义样式，与UI控件模块共用

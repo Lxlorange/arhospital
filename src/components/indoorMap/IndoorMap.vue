@@ -46,14 +46,19 @@
           key: 'ddc2639ce5ff01d57e9d4a61f8ea67a5',
           // mapURL: './data/1991048910850551809',
           mapID: '1991048910850551809',
-          mapThemeURL: 'https://lib.fengmap.com/theme/2001',
-          defaultThemeName: '2001',
-          modelSelectedEffect: false,
+          // themeURL: 'https://lib.fengmap.com/theme/2001',
+          // themeID: '2001',
+          // modelSelectedEffect: false,
           floorSpace: 8
         };
 
         window.map = new fengmap.FMMap(mapOptions);
 
+        console.log("默认视图模式:2D");
+        window.map.setViewMode({
+            mode: fengmap.FMViewMode.MODE_2D,
+            animate: true
+        });
         window.map.on('loaded', () => {
           console.log('地图加载完成');
           if (window.map.bound) {
@@ -200,17 +205,24 @@
           
           var request = new fengmap.FMSearchRequest();
           
-          request.type = fengmap.FMType.MODEL; 
-          
-          request.keyword = keyword;
+          request.addCondition({
+             keyword: keyword
+          });
 
           this.searchAnalyser.query(request, (result) => {
+            console.log(`搜索 [${keyword}] 结果:`, result);
+
             if (result && result.length > 0) {
               const target = result[0];
+              const x = target.mapCoord ? target.mapCoord.x : (target.center ? target.center.x : target.x);
+              const y = target.mapCoord ? target.mapCoord.y : (target.center ? target.center.y : target.y);
+              
+              const level = target.level !== undefined ? target.level : target.groupID;
+
               resolve({
-                x: target.mapCoord ? target.mapCoord.x : target.x, 
-                y: target.mapCoord ? target.mapCoord.y : target.y,
-                groupID: target.groupID,
+                x: x,
+                y: y,
+                groupID: level, 
                 name: target.name
               });
             } else {
